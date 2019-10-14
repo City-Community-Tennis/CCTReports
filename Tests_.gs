@@ -16,236 +16,19 @@ function test_init() {
 }
 
 function test_misc() {
-  var a = [0,1,2]
+  var a = [1]
   var b = a.slice()
+  a = [2]
+  
   return
 }
 
-function test_inTrac_getRevenues() {
-
-  var monthDate = SpreadsheetApp
-    .getUi()
-    .prompt('Enter the date of the second day of the month you would ' + 
-      'like to retrieve and categories revenue data for, in the form yyyy-MM, e.g. 2019-08').getResponseText()
-  
-  var cookies = InTrac_.login()
-  
-  var options = {
-    'method' : 'get',
-    'headers': {
-      'Cookie': cookies // Set the cookies so that we appear logged-in
-    }
-  }
-        
-  var response = UrlFetchApp.fetch('https://jensenstennis.intrac.com.au/tennis/admin/revenue.cfm?month=' + monthDate + '&raw=1', options);
-  var content = response.getContentText()
-  var inTracData = Utilities.parseCsv(content) // 2D Array
-  
-  var spreasdsheet = Utils_.getSpreadsheet(TEST_SHEET_ID_)
-  
-  var csvSheet = spreasdsheet.getSheetByName('Revenues - InTrac Raw Data')
-  csvSheet.clear()
-  
-  csvSheet
-    .getRange(1, 1, inTracData.length, inTracData[0].length)
-    .setValues(inTracData)
-
-  inTracData.shift() // Remove headers
-
-  var categoriesTable = spreasdsheet
-    .getSheetByName('Categories')
-    .getDataRange()
-    .getValues()
-    
-  categoriesTable.shift() // Remove headers
-  
-  var nextRow = []
-  var cctData = []
-  
-//  for (var i = 0; i < 1000; i++) {
-//    var inTracRow = InTracData[i]
-  
-  inTracData.forEach(function(inTracRow, inTracRowIndex) {
-  
-//    if (inTracRowIndex > 2) {
-//      return 
-//    }
-  
-    var inTracTimestamp = new Date(inTracRow[1].slice(0, 10)) // Remove the time element
-    var timeZone = Session.getScriptTimeZone()
-    var dateString = Utilities.formatDate(inTracTimestamp, timeZone, 'MMMM - yyyy')
-    
-    var inTracCategory = inTracRow[2]
-    var inTracDescription = inTracRow[3]
-    var nextCategory = getCategories(inTracDescription, inTracCategory)
-    
-    var inTracLocation = inTracRow[4]
-    var cctLocation = getCctLocation(inTracLocation, inTracDescription, inTracCategory) 
-    
-    var amountIncGst = parseInt(inTracRow[5].slice(1), 10)
-    var amountExGST = amountIncGst / (1 + SALES_TAX_)
-
-    // InTrac: 0 - receipt, 1 - timestamp, 2 - category, 3 - description, 4 - location, 5 - amount,6 - customer
-
-    nextRow = [
-      dateString,               // 0  - date string 
-      inTracRow[0],             // 1 - receipt (InTrac receipt)
-      inTracRow[1],             // 2 - timestamp (InTrac timestamp)
-      nextCategory.cct || '',   // 3 - CCT category
-      nextCategory.ta || '',    // 4 - ta category
-      inTracRow[2],             // 5 - category (InTrac category)
-      nextCategory.description, // 6 - CCT description
-      inTracRow[3],             // 7 - description (InTrac description)
-      cctLocation,              // 8 - CCT location
-      inTracLocation,           // 9 - location (InTrac location)
-      amountIncGst,             // 10 - "rev (GST Inc)" (InTrac amount)
-      amountExGST,              // 11 - rev (GST Ex)
-      inTracRow[6],             // 12 - customer (InTrac customer)
-    ]
-    
-    cctData.push(nextRow.slice())
-  })
-  
-  var revenueSheet = spreasdsheet.getSheetByName('Revenues - Script CCT Data')
-  
-  revenueSheet
-    .getRange(2, 1, revenueSheet.getLastRow() - 1, revenueSheet.getLastColumn())
-    .clearContent()
-  
-  revenueSheet
-    .getRange(2, 1, cctData.length, cctData[0].length)
-    .setValues(cctData)
-  
+function test_InTrac_getUsage() {
+  test_init()
+  InTrac_.getUsage()
   return
-  
-  // Private Functions
-  // -----------------
-  
-  /**
-   * getCategories
-   *
-   * @param {object} 
-   *
-   * @return {object}
-   */
-   
-  function getCategories(inTracDescription, inTracCategory) {
-  
-    Log_.functionEntryPoint()
-    
-    var categories = {
-      cct: '',
-      ta: '',
-      description: '',
-    }
-    
-    categoriesTable.some(function(row) {
-    
-      var nextInTracDescription = row[0]
-      var nextInTracCategory = row[1]
-    
-      if (inTracDescription.indexOf(nextInTracDescription) !== -1) {
-      
-        if (nextInTracCategory === '') {
-        
-          categories.cct = row[2]
-          categories.ta = row[3]
-          return true
-          
-        } else { // nextInTracCategory !== ''
-          
-          if (nextInTracCategory === inTracCategory) {
-          
-            categories.cct = row[2]
-            categories.ta = row[3]
-            return true
-          }
-        }
-      }
-      
-      if (inTracDescription === '') {
-      
-        if (inTracCategory === 'Refund') {
-        
-          categories.description = 'Player booking cancellation / credit issued'
-          
-        } else {
-          // No Description
-        }
-      } else {
-      
-        if (inTracDescription === 'Try Before You Buy!') {
-        
-          categories.description = 'Proshop - Racquet Hire'
-          
-        } else {
-      
-          categories.description = inTracDescription
-        }
-      }
-      
-    }) // search InTrac data rows
-    
-    return categories
-  
-  } // InTrac_.getRevenues.getCategories() 
-  
-  /**
-   * getCctLocation
-   *
-   * @param {string} inTracLocation 
-   *
-   * @return {strting} cctLocation
-   */
-   
-  function getCctLocation(inTracLocation, inTracDescription, inTracCategory) {
-  
-    Log_.functionEntryPoint()
-    
-    var cctLocation = ''
-    
-    if (inTracLocation === '') {
-    
-      if (inTracDescription === 'Admin') {
-      
-        cctLocation = 'Admin'
-        
-      } else if (
-        inTracDescription.indexOf('Advantage') !== -1 || 
-        inTracDescription.indexOf('Pro shop') !== -1 ||
-        inTracDescription.indexOf('Proshop') !== -1 || 
-        inTracDescription.indexOf('Kiosk - ') !== -1 ||
-        inTracDescription.indexOf('Credit') !== -1 ||
-        inTracDescription.indexOf('Competition - ESTA') !== -1 ||
-        inTracDescription.indexOf('Proshop - Racquet Hire') !== -1 ||
-        inTracDescription.indexOf('Try Before You Buy!') !== -1) {
-        
-        cctLocation = 'Surry Hills'
-        
-      } else if (inTracDescription.indexOf('Hall Hire - Extras') !== -1) {
-      
-        cctLocation = 'Coronation'
-        
-      } else if (inTracDescription === '') {
-      
-        if (inTracCategory === 'Refund') {
-        
-          cctLocation = 'Admin'
-        }
-      }
-      
-    } else {
-    
-      cctLocation = inTracLocation
-    }
-       
-    return cctLocation
-  
-  } // InTrac_.getRevenues.getCctLocation() 
-  
-  return
-  
-} // InTrac_.getRevenues()
+}
+
 
 function test_db() {
 
@@ -300,12 +83,6 @@ function test_db() {
   statement.close()
   db.close()
 
-  return
-}
-
-function test_InTrac_getTables() {
-  test_init()
-  InTrac_.getTables()
   return
 }
 
