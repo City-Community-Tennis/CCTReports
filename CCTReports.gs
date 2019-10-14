@@ -110,4 +110,4 @@ function eventHandler_(config, args) {
 
 function onGetUsage_(args) {return InTrac_.getUsage(args)}
 // function onGetRevenueStreams_(args) {return InTrac_.onGetRevenueStreams(args)}
-function onGetRevenueStreams_(args) {return test_inTrac_getRevenues()}
+function onGetRevenueStreams_(args) {return InTrac_.getRevenues(args)}
