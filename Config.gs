@@ -47,10 +47,10 @@ var TEST_SHEET_ID_ = '1MbyALWFs03O5dLkcYTSeD0KP46TErcue2SzRaQ-1aJI' // Copy of C
 // Intrac
 // ------
 
-var INTRAC_USERNAME_ = "Andrew"
-var INTRAC_PASSWORD_ = "google"
+var INTRAC_USERNAME_ = "##########"
+var INTRAC_PASSWORD_ = "##########"
 
-var INTRAC_BASE_URL_ = 'https://jensenstennis.intrac.com.au/tennis/admin/'
+var INTRAC_BASE_URL_ = '##############################################'
 var INTRAC_USAGE_URL_ = 'usage.cfm?location='
 
 // Sheets
