@@ -8,4 +8,15 @@
 // v1.0
 // ----
 //
-// * First version
+// * Added getNewMemberData()
+
+// v0.5
+// ----
+//
+// * Added booking types
+
+// v0.4
+// ----
+//
+// * Added usage data
+

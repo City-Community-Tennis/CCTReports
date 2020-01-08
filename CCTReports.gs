@@ -1,4 +1,4 @@
-// JSHint - TODO
+// JSHint - 20200108
 /* jshint asi: true */
 
 (function() {"use strict"})()
@@ -40,10 +40,14 @@ var EVENT_HANDLERS_ = {
 
   onGetUsage:                ['onGetUsage()',                'Failed to get usuage',                  onGetUsage_],
   onGetRevenueStreams:       ['onGetRevenueStreams()',       'Failed to get revenue streams',         onGetRevenueStreams_],
+  onGetCoachHours:           ['onGetCoachHours()',           'Failed to get revenue streams',         onGetCoachHours_],
+  onGetNewMemberData:        ['onGetNewMemberData()',        'Failed to get new member data',         onGetNewMemberData_],
 }
 
 function onGetUsage(args) {return eventHandler_(EVENT_HANDLERS_.onGetUsage, args)}
 function onGetRevenueStreams(args) {return eventHandler_(EVENT_HANDLERS_.onGetRevenueStreams, args)}
+function onGetCoachHours(args) {return eventHandler_(EVENT_HANDLERS_.onGetCoachHours, args)}
+function onGetNewMemberData(args) {return eventHandler_(EVENT_HANDLERS_.onGetNewMemberData, args)}
 
 // Private Functions
 // =================
@@ -73,7 +77,6 @@ function eventHandler_(config, args) {
     Log_ = BBLog.getLog({
       level:                DEBUG_LOG_LEVEL_, 
       displayFunctionNames: DEBUG_LOG_DISPLAY_FUNCTION_NAMES_,
-      sheetId:              MASTER_SHEET_ID_,
     })
     
     Log_.info('Handling ' + config[0] + ' from ' + (userEmail || 'unknown email') + ' (' + SCRIPT_NAME + ' ' + SCRIPT_VERSION + ')')
@@ -109,5 +112,6 @@ function eventHandler_(config, args) {
 // ----------------------
 
 function onGetUsage_(args) {return InTrac_.getUsage(args)}
-// function onGetRevenueStreams_(args) {return InTrac_.onGetRevenueStreams(args)}
 function onGetRevenueStreams_(args) {return InTrac_.getRevenues(args)}
+function onGetCoachHours_(args) {return InTrac_.getCoachHours(args)}
+function onGetNewMemberData_(args) {return InTrac_.getNewMemberData(args)}

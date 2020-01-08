@@ -1,6 +1,6 @@
 // 34567890123456789012345678901234567890123456789012345678901234567890123456789
 
-// JSHint - TODO
+// JSHint - 20200108
 /* jshint asi: true */
 
 (function() {"use strict"})()
@@ -13,17 +13,15 @@
 var Utils_ = (function(ns) {
 
   /**
+   * Scrape data from the InTrac website
    *
+   * @param {string} html 
    *
-   * @param {object} 
-   *
-   * @return {object}
+   * @return {array} data
    */
  
   ns.scraper = function(html) {
   
-    Log_.functionEntryPoint()    
-
     // Remove all the <b> and </b>s
     html = html.replace(/<b>/g, '').replace(/<\/b>/g, '')
 
@@ -43,14 +41,12 @@ var Utils_ = (function(ns) {
     var nextRow = []
     var nextCell
     
-    var tableIndex = 0
-    var rowIndex = 0
-    var cellIndex = 0
-    var startStoreOffset = 0
+    var startStoreOffset = 0    
+    var result
     
     do {
       
-      var result = getNextTag(html, offset)
+      result = getNextTag(html, offset)
       
       if (result !== null) {
         
@@ -74,7 +70,6 @@ var Utils_ = (function(ns) {
         } else if (nextTag === '/td') {
           
           nextCell = html.slice(startStoreOffset + 1, offset - '</td'.length)
-          //        Logger.log(nextCell)
           nextRow.push(nextCell)
           
           state = STATES.TR
@@ -92,13 +87,8 @@ var Utils_ = (function(ns) {
           
         } else if (nextTag === '/table') { 
         
-          state = STATES.NULL         
-          
-        } else {
-        
-          
+          state = STATES.NULL          
         }      
-        //      Logger.log(state)      
       }
       
     } while (result !== null)
@@ -118,11 +108,11 @@ var Utils_ = (function(ns) {
       
       openOffset++
         
-        var closeOffset = text.indexOf('>', openOffset)
+      var closeOffset = text.indexOf('>', openOffset)
         
-        if (closeOffset === -1) {
-          return null
-        }
+      if (closeOffset === -1) {
+        return null
+      }
       
       var tagEndOffset = text.indexOf(' ', openOffset)
       
@@ -154,8 +144,6 @@ var Utils_ = (function(ns) {
    */
  
   ns.getSpreadsheet = function() {
-  
-    Log_.functionEntryPoint() 
     
     var spreadsheet = SpreadsheetApp.getActive()
     
@@ -170,6 +158,34 @@ var Utils_ = (function(ns) {
     return spreadsheet
     
   } // Utils_.getSpreadsheet()
+
+  /**
+   * Get the suburb for an Australian postcode
+   *
+   * @param {string} postcode
+   *
+   * @return {string} suburb or ''
+   */
+ 
+  ns.getSuburb = function(postcode) {      
+  
+    Log_.fine('postcode: ' + postcode)
+    
+    var url = 'http://api.geonames.org/postalCodeSearchJSON?postalcode=' + postcode + '&maxRows=1&username=citytennis&country=AU'
+    var response = UrlFetchApp.fetch(url)
+    var data = JSON.parse(response.getContentText())
+    Log_.finest('data: %s', data)
+    
+    if (data.postalCodes.length === 0) {
+      Log_.warning('Could not find a subburb for postcode ' + postcode)
+      return 'NOT_FOUND'
+    }
+    
+    var suburb = data.postalCodes[0].placeName || ''
+    Log_.finest('suburb: ' + suburb)
+    return suburb
+    
+  } // Utils_.getSuburb()
 
   return ns
 

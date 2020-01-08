@@ -1,15 +1,15 @@
 // 34567890123456789012345678901234567890123456789012345678901234567890123456789
 
-// JSHint - TODO
+// JSHint - 20200108
 /* jshint asi: true */
 
 (function() {"use strict"})()
 
-// Code review all files - TODO
-// JSHint review (see files) - TODO
+// Code review all files - 20200108
+// JSHint review (see files) - 20200108
 // Unit Tests - TODO
 // System Test (Dev) - TODO
-// System Test (Prod) - TODO
+// System Test (Prod) - 20200108
 
 // Config.gs
 // =========
@@ -22,7 +22,7 @@
 // =============
 
 var SCRIPT_NAME = "CCTReports"
-var SCRIPT_VERSION = "v0.5"
+var SCRIPT_VERSION = "v1.0"
 
 var PRODUCTION_VERSION_ = true
 
@@ -37,20 +37,26 @@ var DEBUG_LOG_DISPLAY_FUNCTION_NAMES_ = PRODUCTION_VERSION_ ? BBLog.DisplayFunct
 
 var SEND_ERROR_EMAIL_ = PRODUCTION_VERSION_ ? true : false
 var HANDLE_ERROR_ = Assert.HandleError.THROW
-var ADMIN_EMAIL_ADDRESS_ = ''
+var ADMIN_EMAIL_ADDRESS_ = 'dev@citycommunitytennis.com.au'
 
 // Tests
 // -----
 
-var TEST_SHEET_ID_ = '1MbyALWFs03O5dLkcYTSeD0KP46TErcue2SzRaQ-1aJI' // Copy of CCTReports - v0.4.dev_ajr
+var TEST_SHEET_ID_ = '1s_8XPo-VM_mZuSbwSdmILN8rTTe-Br8jODp5-_nK1CU'
+
+var TEST_GET_DATE_FROM_USER_ = true
+
+if (PRODUCTION_VERSION_ && !TEST_GET_DATE_FROM_USER_) {
+  throw new Error('Test flags set in production')
+}
 
 // Intrac
 // ------
 
-var INTRAC_USERNAME_ = "##########"
-var INTRAC_PASSWORD_ = "##########"
+var INTRAC_USERNAME_ = "Andrew"
+var INTRAC_PASSWORD_ = "google"
 
-var INTRAC_BASE_URL_ = '##############################################'
+var INTRAC_BASE_URL_ = 'https://jensenstennis.intrac.com.au/tennis/admin/'
 var INTRAC_USAGE_URL_ = 'usage.cfm?location='
 
 // Sheets
@@ -133,8 +139,6 @@ var LOCATIONS_ = [
 /* 
 function functionTemplate() {
 
-  Log_.functionEntryPoint()
-  
   
 
 } // functionTemplate() 

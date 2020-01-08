@@ -1,6 +1,6 @@
 // 34567890123456789012345678901234567890123456789012345678901234567890123456789
 
-// JSHint - TODO
+// JSHint - 20200108
 /* jshint asi: true */
 
 (function() {"use strict"})()
@@ -15,7 +15,7 @@ var InTrac_ = (function(ns) {
   /**
   * Log into InTrac to get the required cookies for auth
   *
-  * @return {array] cookies
+  * @return {array} cookies
   */
   
   ns.login = function() {
@@ -30,7 +30,6 @@ var InTrac_ = (function(ns) {
     };
     
     var response = UrlFetchApp.fetch(INTRAC_BASE_URL_ + 'login.cfm/', options);
-    var content = response.getContentText()
     var headers = response.getAllHeaders()
     
     if (headers['Set-Cookie'] === undefined) {
@@ -57,8 +56,6 @@ var InTrac_ = (function(ns) {
  
   ns.getUsage = function() {
   
-    Log_.functionEntryPoint()
-        
     var spreadsheet           = Utils_.getSpreadsheet()
     var usageStagingSheet     = spreadsheet.getSheetByName('Staging - Occupancy')
     var bookingStagingSheet   = spreadsheet.getSheetByName('Processed Data - Booking Types')
@@ -66,8 +63,6 @@ var InTrac_ = (function(ns) {
     var startDate             = dashboardSheet.getRange(DASHBOARD_START_DATE_CELL_).getValue()
     var numberOfMonths        = dashboardSheet.getRange(DASHBOARD_NUMBER_OF_MONTHS_CELL_).getValue()
     var numberOfCourts        = usageStagingSheet.getRange(STAGING_NUMBER_OF_COURTS_RANGE_).getValues()
-    var today                 = new Date()
-    var msFirstOfPresentMonth = (new Date(today.getYear(), today.getMonth())).getTime()    
     var cookies               = this.login()
     
     var options = {
@@ -98,18 +93,13 @@ var InTrac_ = (function(ns) {
      
     function importInTracUsageData() {
     
-      Log_.functionEntryPoint()
-      
-       usage.forEach(function(location) {
-      
+      usage.forEach(function(location) {
+        
         location.forEach(function(month) {
-                
-          var nextMonthDate = month[2]
-          var msNextMonth = nextMonthDate.getTime()
           
           var sheetName = month[1]        
           var sheet = spreadsheet.getSheetByName(sheetName)
-            
+          
           var response = UrlFetchApp.fetch(INTRAC_BASE_URL_ + month[0], options);
           content = response.getContentText()
           var table = Utils_.scraper(content)
@@ -124,10 +114,9 @@ var InTrac_ = (function(ns) {
             .setValues(table)
           
           var message = 'Updated InTrac usage data for ' + sheetName
-  
-          Log_.info(message)        
-          spreadsheet.toast(message)
           
+          Log_.info(message)        
+          spreadsheet.toast(message)         
         })
       })
         
@@ -136,9 +125,7 @@ var InTrac_ = (function(ns) {
     /**
      * Construct an array that lists all the locations and months
      *
-     * @param {object} 
-     *
-     * @return {object}
+     * @return {object} usage
      */
     
     // !!! Since added a month object to the end of each row !!!
@@ -169,17 +156,12 @@ var InTrac_ = (function(ns) {
     
     function getUsageArray() {
     
-      Log_.functionEntryPoint()
-    
-//var usage = [[['usage.cfm?location=2&date=2019-07', 'Surry Hills - Sep 2019', new Date(2019,8,1)]]]
-//return usage
-      
       var usage = []
       var nextMonth = startDate
       
       for (var location in LOCATIONS_) {
       
-        if (!LOCATIONS_.hasOwnProperty(location)) {
+        if (LOCATIONS_.hasOwnProperty(location)) {
           break
         }
       
@@ -187,7 +169,7 @@ var InTrac_ = (function(ns) {
         var nextQuarter = []
         
         for (var monthIndex = 0; monthIndex < numberOfMonths; monthIndex++) {
-        
+          
           var monthData = getMonthData(nextMonth)
           nextMonth = monthData.next        
           
@@ -217,9 +199,6 @@ var InTrac_ = (function(ns) {
     
     function getMonthData(presentMonth) {
       
-      Log_.functionEntryPoint()
-      
-      var data = {}
       var timeZone = Session.getScriptTimeZone()
       var string1 = Utilities.formatDate(presentMonth, timeZone, 'yyyy-MM')
       var string2 = Utilities.formatDate(presentMonth, timeZone, 'MMM yyyy')
@@ -242,8 +221,6 @@ var InTrac_ = (function(ns) {
      
     function completeBookingStaging() {
     
-      Log_.functionEntryPoint()
-      
       var writeData = []
       
       var categoriesTable = spreadsheet
@@ -263,7 +240,6 @@ var InTrac_ = (function(ns) {
           var data = spreadsheet.getSheetByName(sheetName).getDataRange().getValues()
           var bookingTypeRowNumber = null
           var visitsRowNumber = null
-          var numberOfRows = data.length
           
           data.forEach(function(row, rowIndex) {
             if (row[0] === 'Bookings by type') {
@@ -320,8 +296,6 @@ var InTrac_ = (function(ns) {
         }) // for each month
       }) // for each location
       
-      // SpreadsheetApp.getActive().getActiveSheet().getActiveRange().clearContent()
-      
       bookingStagingSheet
         .getRange(2, 1, bookingStagingSheet.getLastRow() - 1, bookingStagingSheet.getLastColumn())
         .clearContent()
@@ -330,8 +304,7 @@ var InTrac_ = (function(ns) {
         .getRange(2, 1, writeData.length, writeData[0].length)
         .setValues(writeData)
         
-      Log_.info('Written ' + writeData.length + ' rows to Bookings Staging tab')
-      
+      Log_.info('Written ' + writeData.length + ' rows to Bookings Staging tab')    
       return 
       
       // Private Functions
@@ -345,8 +318,6 @@ var InTrac_ = (function(ns) {
        
       function getBookingCategories(booking) {
       
-        Log_.functionEntryPoint()
-        
         var categories = {}
         
         var found = categoriesTable.some(function(row) {
@@ -386,8 +357,6 @@ var InTrac_ = (function(ns) {
        
       function getNumberOfVisits(data, booking, startRowIndex) {
       
-        Log_.functionEntryPoint()
-        
         var numberOfVisits = null
         
         for (var rowIndex = startRowIndex; rowIndex < data.length; rowIndex++) {
@@ -415,8 +384,6 @@ var InTrac_ = (function(ns) {
     
     function completeOccupancyStaging() {
     
-      Log_.functionEntryPoint()
-
       var months = []
       var numberOfDays = 0
       
@@ -428,9 +395,6 @@ var InTrac_ = (function(ns) {
 
       Log_.fine('numberOfDays: ' + numberOfDays)
 
-      // Lost hours due to unplayable days
-
-     
       // Number of days in quarter
           
       usageStagingSheet
@@ -496,16 +460,18 @@ var InTrac_ = (function(ns) {
   } // InTrac_.getUsage()
 
   /**
-   *
-   */ 
+   * Get the raw revenue data from Intrac and update the InTrac categories to CCT ones
+   */
 
   ns.getRevenues = function() {
   
     var monthDate = SpreadsheetApp
       .getUi()
-      .prompt('Enter the date of the second day of the month you would ' + 
-        'like to retrieve and categories revenue data for, in the form yyyy-MM, e.g. 2019-08').getResponseText()
-    
+      .prompt(
+        'Enter the date of the second day of the month you would ' + 
+          'like to retrieve categories revenue data for, in the form yyyy-MM, e.g. 2019-08')
+        .getResponseText()
+
     var cookies = InTrac_.login()
     
     var options = {
@@ -515,11 +481,15 @@ var InTrac_ = (function(ns) {
       }
     }
           
-    var response = UrlFetchApp.fetch('https://jensenstennis.intrac.com.au/tennis/admin/revenue.cfm?month=' + monthDate + '&raw=1', options);
+    var response = UrlFetchApp
+      .fetch(
+        INTRAC_BASE_URL_ + 'revenue.cfm?month=' + monthDate + '&raw=1', 
+        options);
+    
     var content = response.getContentText()
     var inTracData = Utilities.parseCsv(content) // 2D Array
     
-    var spreasdsheet = Utils_.getSpreadsheet(TEST_SHEET_ID_)
+    var spreasdsheet = Utils_.getSpreadsheet()
     
     var csvSheet = spreasdsheet.getSheetByName('Revenues - InTrac Raw Data')
     csvSheet.clear()
@@ -553,7 +523,7 @@ var InTrac_ = (function(ns) {
       var inTracLocation = inTracRow[4]
       var cctLocation = getCctLocation(inTracLocation, inTracDescription, inTracCategory) 
       
-      var amountIncGst = parseInt(inTracRow[5].slice(1), 10)
+      var amountIncGst = parseFloat(inTracRow[5].slice(1))
       var amountExGST = amountIncGst / (1 + SALES_TAX_)
   
       // InTrac: 0 - receipt, 1 - timestamp, 2 - category, 3 - description, 4 - location, 5 - amount,6 - customer
@@ -583,9 +553,13 @@ var InTrac_ = (function(ns) {
       .getRange(2, 1, revenueSheet.getLastRow() - 1, revenueSheet.getLastColumn())
       .clearContent()
     
+    var numberOfRows = cctData.length
+    
     revenueSheet
       .getRange(2, 1, cctData.length, cctData[0].length)
       .setValues(cctData)
+      
+    Log_.info('Written ' + numberOfRows + ' row to revenue sheet')
     
     return
     
@@ -595,15 +569,14 @@ var InTrac_ = (function(ns) {
     /**
      * getCategories
      *
-     * @param {object} 
+     * @param {string} inTracDescription
+     * @param {string} inTracCategory
      *
-     * @return {object}
+     * @return {object} categories
      */
      
     function getCategories(inTracDescription, inTracCategory) {
     
-      Log_.functionEntryPoint()
-      
       var categories = {
         cct: '',
         ta: '',
@@ -629,6 +602,11 @@ var InTrac_ = (function(ns) {
             
               categories.cct = row[2]
               categories.ta = row[3]
+              
+              if (inTracDescription === 'Admin' && inTracCategory === 'Purchase') {
+                categories.description = 'Unallocated item (TYRO time out) Kiosk / Pro shop'
+              }
+              
               return true
             }
           }
@@ -638,11 +616,12 @@ var InTrac_ = (function(ns) {
         
           if (inTracCategory === 'Refund') {
           
-            categories.description = 'Player booking cancellation / credit issued'
+            categories.description = 'Refund'
             
           } else {
             // No Description
           }
+          
         } else {
         
           if (inTracDescription === 'Try Before You Buy!') {
@@ -671,15 +650,17 @@ var InTrac_ = (function(ns) {
      
     function getCctLocation(inTracLocation, inTracDescription, inTracCategory) {
     
-      Log_.functionEntryPoint()
-      
       var cctLocation = ''
       
       if (inTracLocation === '') {
       
         if (inTracDescription === 'Admin') {
         
-          cctLocation = 'Admin'
+          if (inTracCategory === 'Purchase') {
+            cctLocation = 'Surry Hills'
+          } else {
+            cctLocation = 'Admin'
+          }
           
         } else if (
           inTracDescription.indexOf('Advantage') !== -1 || 
@@ -701,7 +682,7 @@ var InTrac_ = (function(ns) {
         
           if (inTracCategory === 'Refund') {
           
-            cctLocation = 'Admin'
+            cctLocation = 'Surry Hills'
           }
         }
         
@@ -717,6 +698,196 @@ var InTrac_ = (function(ns) {
     return
     
   } // InTrac_.getRevenues()
+
+  /**
+   * Get and process the number of coach hours from InTrac
+   */ 
+
+  ns.getCoachHours = function() {
+  
+    var monthDate = SpreadsheetApp
+      .getUi()
+      .prompt('Enter the date of the second day of the month you would ' + 
+        'like to retrieve coach hours for, in the form yyyy-MM, e.g. 2019-08').getResponseText()
+    
+    var cookies = InTrac_.login()
+    
+    var options = {
+      'method' : 'get',
+      'headers': {
+        'Cookie': cookies // Set the cookies so that we appear logged-in
+      }
+    }
+              
+    var response = UrlFetchApp.fetch(INTRAC_BASE_URL_ + 'coaches.cfm?date=' + monthDate + '&month=1&raw=1', options);
+    var content = response.getContentText()
+    var inTracData = Utilities.parseCsv(content) // 2D Array
+    
+    var spreasdsheet = Utils_.getSpreadsheet()
+    
+    var csvSheet = spreasdsheet.getSheetByName('Raw Data')
+    csvSheet.clear()
+    
+    csvSheet
+      .getRange(1, 1, inTracData.length, inTracData[0].length)
+      .setValues(inTracData)
+  
+    inTracData.shift() // Remove headers
+  
+    var categoriesTable = spreasdsheet
+      .getSheetByName('Categories')
+      .getDataRange()
+      .getValues()
+      
+    categoriesTable.shift() // Remove headers
+    
+    var nextRow = []
+    var cctData = []
+        
+    inTracData.forEach(function(inTracRow, inTracRowIndex) {
+    
+      var inTracDescription = inTracRow[4]
+
+      // InTrac raw data: 0 - date, 1 - time, 2 - coach, 3 - location, 4 - description, 5 - duration
+  
+      nextRow = [
+        inTracRow[0],             // 0 - date (InTrac date)
+        inTracRow[1],             // 1 - time (InTrac time)
+        inTracRow[2],             // 2 - coach (InTrac coach)
+        inTracRow[3],             // 3 - location (InTrac location)
+        '',                       // 4 - CCT category - Looked up by sheet formula
+        inTracDescription,        // 5 - description (InTrac description)
+        inTracRow[5],             // 6 - duration (InTrac duration)
+      ]
+      
+      cctData.push(nextRow.slice())
+    })
+    
+    var coachHoursSheet = spreasdsheet.getSheetByName('Coach Hours')
+    
+    coachHoursSheet
+      .getRange(2, 1, coachHoursSheet.getLastRow() - 1, coachHoursSheet.getLastColumn())
+      .clearContent()
+    
+    var numberOfRows = cctData.length
+    
+    coachHoursSheet
+      .getRange(2, 1, numberOfRows, cctData[0].length)
+      .setValues(cctData)
+      
+    Log_.info('Written ' + numberOfRows + ' rows to "Coach Hours".')
+    
+  } // InTrac_.getCoachHours()
+
+  /**
+   * Get and process the number of new members per month by suburb
+   */ 
+
+  ns.getNewMemberData = function() {
+  
+    var monthDate = getMonthDate()
+    var inTracData = getInTraceData()
+    var postcodes = getPostCodes(inTracData[12][0]) // A13
+    var spreadsheet = Utils_.getSpreadsheet()
+    writeRawPostCodesToSheet()
+    writeNewMemberNumbersToSheet()
+    spreadsheet.getSheetByName('New Members').getRange('B2').setValue(monthDate)
+    return
+    
+    // Private Functions
+    // -----------------
+
+    function getMonthDate() {     
+    
+      if (!TEST_GET_DATE_FROM_USER_) {
+        return '2019-12'
+      }
+        
+      var monthDate = SpreadsheetApp.getUi() 
+        .prompt('Enter the date of the second day of the month you would ' + 
+              'like to retrieve coach hours for, in the form yyyy-MM, e.g. 2019-08').getResponseText()
+      
+      if (monthDate === '') {
+        throw new Error('Please enter a date and try again.')
+      } 
+            
+      return monthDate
+      
+    } // InTrac_.getNewMemberData.getMonthDate()
+
+    function getInTraceData() {  
+    
+      var cookies = InTrac_.login()
+      
+      var options = {
+        'headers': {
+          'Cookie': cookies // Set the cookies so that we appear logged-in
+        }
+      }
+                
+      var response = UrlFetchApp.fetch(INTRAC_BASE_URL_ + 'member.cfm?month=' + monthDate, options);
+      var content = response.getContentText()
+      return Utils_.scraper(content)
+      
+    } // InTrac_.getNewMemberData.getInTraceData()
+
+    /*
+     * @param {string} postCodeString
+     *
+     * @return {array} postcodes
+     */
+    
+    function getPostCodes(postCodeString) {
+    
+      var postcodes = []
+      var regex = /[0-9]+\,[0-9]+/gm // '  222,22 <br>'
+      var postcodeList = postCodeString.match(regex);
+
+      postcodeList.forEach(function(item) {
+        var commaIndex = item.indexOf(',')
+        postcodes.push([item.slice(0, commaIndex), item.slice(commaIndex + 1)])
+      })
+      
+      return postcodes
+    
+    } // InTrac_.getNewMemberData.getPostCodes()
+
+    function writeRawPostCodesToSheet() {
+          
+      var rawDataSheet = spreadsheet.getSheetByName('Raw Data')
+      rawDataSheet.clear()
+      
+      rawDataSheet
+        .getRange(1, 1, postcodes.length, postcodes[0].length)
+        .setValues(postcodes)
+        
+    } // InTrac_.getNewMemberData.writeRawPostCodesToSheet
+        
+    function writeNewMemberNumbersToSheet() {
+
+      var members = []
+          
+      postcodes.forEach(function(row, rowIndex) {
+        members.push([row[0], Utils_.getSuburb(row[0]), row[1]])
+      })
+  
+      var membersSheet = spreadsheet.getSheetByName('New Members')
+  
+      membersSheet
+        .getRange(5, 1, membersSheet.getLastRow() - 1, 3)
+        .clearContent()
+      
+      var numberOfRows = members.length
+      
+      membersSheet
+        .getRange(5, 1, numberOfRows, 3)
+        .setValues(members)
+        
+      Log_.info('Written ' + numberOfRows + ' rows to "New Members".')
+      
+    } // InTrac_.getNewMemberData.writeNewMemberNumbersToSheet()
+    
+  } // InTrac_.getNewMemberData()
 
   return ns
 
