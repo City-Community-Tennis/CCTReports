@@ -7,6 +7,8 @@
 //
 // Code for internal/unit testing
 
+/*
+
 function test_init() {
   Log_ = BBLog.getLog({
     sheetId:              MASTER_SHEET_ID_,
@@ -16,10 +18,35 @@ function test_init() {
 }
 
 function test_misc() {
-  var a = [1]
-  var b = a.slice()
-  a = [2]
-  
+  return
+}
+
+function test_InTrac_getNewMemberData() {
+  test_init()
+  InTrac_.getNewMemberData()
+  debugger
+}
+
+function test_Intrac_getRevenues() {
+  test_init()
+  InTrac_.getRevenues()
+  return
+}
+
+function test_diff() {
+  var ss = SpreadsheetApp.openById('1hXxHsiAj-QDX5_tVxhoVaAW2-psAo5QPaZqTguxj7ss')
+  var rawData = ss.getSheetByName('Revenues - InTrac Raw Data').getRange(2, 8, 6867, 1).getValues()
+  var processedData = ss.getSheetByName('Revenues - Script CCT Data').getRange(2, 11, 6867, 1).getValues()
+  rawData.forEach(function(row, rowIndex) {
+    if (row[0] !== processedData[rowIndex]) {
+      throw new Error('rowIndex: ' + rowIndex)
+    }
+  })
+}
+
+function test_InTrac_getCoachHours() {
+  test_init()
+  InTrac_.getCoachHours()
   return
 }
 
@@ -28,7 +55,6 @@ function test_InTrac_getUsage() {
   InTrac_.getUsage()
   return
 }
-
 
 function test_db() {
 
@@ -94,7 +120,4 @@ function test_Utils_scraper() {
   return
 }
 
-function test_() {
-  test_init()
-  // ...
-}
+*/
